@@ -1,0 +1,62 @@
+[
+  {
+    "title": "Mock AI Job",
+    "company": "MockCorp",
+    "location": "Remote",
+    "salary": "200/day",
+    "tech_tags": [
+      "LLM"
+    ],
+    "requirements": "Python",
+    "source": "MockSite",
+    "job_url": "mock_url_1"
+  },
+  {
+    "title": "Mock AI Job",
+    "company": "MockCorp",
+    "location": "Remote",
+    "salary": "200/day",
+    "tech_tags": [
+      "LLM"
+    ],
+    "requirements": "Python",
+    "source": "MockSite",
+    "job_url": "mock_url_2"
+  },
+  {
+    "title": "Mock AI Job",
+    "company": "MockCorp",
+    "location": "Remote",
+    "salary": "200/day",
+    "tech_tags": [
+      "LLM"
+    ],
+    "requirements": "Python",
+    "source": "MockSite",
+    "job_url": "mock_url_3"
+  },
+  {
+    "title": "Mock AI Job",
+    "company": "MockCorp",
+    "location": "Remote",
+    "salary": "200/day",
+    "tech_tags": [
+      "LLM"
+    ],
+    "requirements": "Python",
+    "source": "MockSite",
+    "job_url": "mock_url_3"
+  },
+  {
+    "title": "Mock AI Job",
+    "company": "MockCorp",
+    "location": "Remote",
+    "salary": "200/day",
+    "tech_tags": [
+      "LLM"
+    ],
+    "requirements": "Python",
+    "source": "MockSite",
+    "job_url": "mock_url_3"
+  }
+]
