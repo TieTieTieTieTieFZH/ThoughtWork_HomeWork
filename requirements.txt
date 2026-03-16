@@ -3,3 +3,4 @@ langchain-openai
 pydantic
 pytest
 python-dotenv
+firecrawl-py

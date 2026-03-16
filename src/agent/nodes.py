@@ -1,4 +1,5 @@
 from src.agent.state import AgentState, JobModel
+from src.agent.tools import unified_search_tool
 
 
 def plan_search(state: AgentState) -> dict:
@@ -13,7 +14,9 @@ def plan_search(state: AgentState) -> dict:
 
 
 def search_jobs(state: AgentState) -> dict:
-    new_urls = {f"mock_url_{state.get('iteration_count', 0)}"}
+    query = state.get("search_queries", ["AI Engineer"])[-1]
+    results = unified_search_tool(query)
+    new_urls = {res["url"] for res in results}
     return {"visited_urls": state.get("visited_urls", set()).union(new_urls)}
 
 
