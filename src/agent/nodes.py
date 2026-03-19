@@ -12,7 +12,17 @@ from loguru import logger
 
 
 def plan_search(state: AgentState) -> dict:
-    queries = ["AI", "大模型算法实习生", "NLP 算法工程师 校招"]
+    queries = [
+        "AI",
+        "大模型算法实习生",
+        "NLP 算法工程师 校招",
+        "计算机视觉",
+        "AIGC 产品经理",
+        "机器学习工程师",
+        "深度学习",
+        "AI 架构师",
+        "数据挖掘工程师",
+    ]
     idx = state.get("iteration_count", 0) % len(queries)
     new_query = queries[idx]
     logger.info(f"plan_search 输出：{state.get('search_queries', []) + [new_query]}")
@@ -72,16 +82,23 @@ def scrape_and_parse(state: AgentState) -> dict:
     logger.info(f"AI相关判断结果: {is_ai_list}")
 
     # 阶段2: 代码解析所有AI相关岗位
+    existing_jobs = state.get("collected_jobs", [])
+    existing_urls = {j.job_url for j in existing_jobs if hasattr(j, "job_url")}
+
     jobs = []
     for i, (card, is_ai) in enumerate(zip(cards, is_ai_list)):
         if is_ai:
             try:
                 job = parse_card_regex(card)
                 if job:
-                    logger.info(f"解析成功: {job}")
-                    jobs.append(job)
+                    if job.job_url not in existing_urls:
+                        logger.info(f"解析成功并添加: {job.title} - {job.company}")
+                        jobs.append(job)
+                        existing_urls.add(job.job_url)
+                    else:
+                        logger.debug(f"跳过重复岗位: {job.title} - {job.company}")
             except Exception as e:
                 logger.error(f"解析第{i + 1}个卡片失败: {e}")
                 continue
 
-    return {"collected_jobs": state.get("collected_jobs", []) + jobs}
+    return {"collected_jobs": existing_jobs + jobs}
