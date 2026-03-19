@@ -20,3 +20,4 @@ class AgentState(TypedDict):
     search_queries: list[str]
     current_site_index: int
     iteration_count: int
+    raw_search_results: str

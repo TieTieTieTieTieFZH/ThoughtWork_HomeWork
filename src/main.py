@@ -1,16 +1,20 @@
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
 from src.agent.graph import build_graph
 
 
 def run_agent():
     graph = build_graph()
     initial_state = {
-        "target_count": 5,  # Low target for quick MVP run
+        "target_count": 50,  # Target 50 jobs
         "collected_jobs": [],
         "visited_urls": set(),
         "search_queries": [],
         "current_site_index": 0,
         "iteration_count": 0,
+        "raw_search_results": "",
     }
 
     final_state = graph.invoke(initial_state)
