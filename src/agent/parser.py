@@ -61,7 +61,7 @@ def split_job_cards(markdown_text: str) -> list[str]:
 
 def is_ai_related_batch(cards: list[str], llm) -> list[bool]:
     """LLM一次判断所有卡片是否AI相关，返回yes/no列表"""
-    prompt = f"""判断以下每个职位是否是AI相关工程师(AI Engineer)。
+    prompt = f"""判断以下每个职位是否是与 AI / 机器学习 / 大模型 / 数据智能 / 算法工程 相关。
 输出格式：每行一个yes或no，不要其他内容。
 
 {chr(10).join(f"{i + 1}. {card}" for i, card in enumerate(cards))}

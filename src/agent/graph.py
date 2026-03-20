@@ -8,7 +8,7 @@ def should_continue(state: AgentState):
     logger.info(f"第{state.get('iteration_count', 0)}轮思考已结束")
     if len(state.get("collected_jobs", [])) >= state.get("target_count", 50):
         return END
-    if state.get("iteration_count", 0) >= 10:  # Safety fallback
+    if state.get("iteration_count", 0) >= 3:  # Safety fallback
         return END
     return "plan_search"
 

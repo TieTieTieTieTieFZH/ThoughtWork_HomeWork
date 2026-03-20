@@ -18,7 +18,7 @@ class SearchJobsQuery(BaseModel):
     """Call the search tool to find jobs."""
 
     query: str = Field(
-        description="The search keyword, e.g. 'AI Engineer', '大模型算法 实习', 'NLP 校招'"
+        description="The search keyword, MUST be very short and concise core technical terms only, e.g. 'AI', '大模型', 'NLP', '机器学习'"
     )
     reasoning: str = Field(
         description="Why you chose this query to find new, unique jobs."
@@ -37,7 +37,7 @@ def plan_search(state: AgentState) -> dict:
         raise ValueError("Missing Volcengine credentials.")
 
     llm = ChatOpenAI(
-        model=volc_model, api_key=volc_api_key, base_url=volc_api_base, temperature=0.7
+        model=volc_model, api_key=volc_api_key, base_url=volc_api_base, temperature=0.5
     )
 
     # Since `with_structured_output` may fail with some Volcengine models if `json_schema` is not fully supported,
@@ -53,7 +53,10 @@ def plan_search(state: AgentState) -> dict:
                 "Progress: Collected {current_count} jobs out of {target_count}.\n"
                 "Past search queries used: {search_queries}\n\n"
                 "Your task: You MUST call the search tool by providing a NEW, distinct search query to find more relevant jobs. "
-                "Be creative with keywords to avoid duplicate results (e.g., '计算机视觉 校招', '机器学习 实习', 'AIGC 产品经理', '深度学习开发', '大模型应用工程师').\n"
+                "CRITICAL RULE: The target website search engine is very strict and fails on long conversational queries. "
+                "You MUST use VERY SHORT, core technical keywords ONLY (e.g., 2-4 Chinese characters or short English acronyms). "
+                "DO NOT include words like '实习', '校招', '应届生', '工程师', '算法' in your query. The website's URL automatically filters for campus/intern jobs, so adding them ruins the search. "
+                "Good query examples: 'AI', '大模型', 'NLP', 'CV', '深度学习', '机器学习', 'AIGC', '强化学习', '推荐系统', '数据挖掘'.\n"
                 "Do not reuse exact queries from the past list.",
             ),
             ("human", "Decide the next search action by calling the search tool."),
@@ -74,18 +77,18 @@ def plan_search(state: AgentState) -> dict:
         # Extract tool call arguments
         if hasattr(res, "tool_calls") and len(res.tool_calls) > 0:
             tool_args = res.tool_calls[0]["args"]
-            new_query = tool_args.get("query", "AI Engineer")
+            new_query = tool_args.get("query", "AI")
             reasoning = tool_args.get("reasoning", "No reasoning provided.")
             logger.info(
                 f"Agent 自主规划搜索 (Tool Call): query='{new_query}', 思考逻辑: '{reasoning}'"
             )
         else:
             logger.warning("Agent 并没有调用工具，使用默认降级词")
-            new_query = "大模型 实习"
+            new_query = "AI"
     except Exception as e:
         logger.error(f"Agent规划异常，使用fallback: {e}")
         # Fallback keyword logic just in case LLM fails
-        fallbacks = ["AI 实习", "算法工程师 校招", "NLP", "计算机视觉"]
+        fallbacks = ["AI", "算法工程师", "大模型"]
         idx = state.get("iteration_count", 0) % len(fallbacks)
         new_query = fallbacks[idx]
 
@@ -125,6 +128,8 @@ def scrape_and_parse(state: AgentState) -> dict:
 
     # 2. Split into cards
     cards = split_job_cards(raw_markdown)
+
+    logger.info(f"筛选后的 LLM 输入：{cards[:2]}")
 
     if not cards:
         return {"collected_jobs": state.get("collected_jobs", [])}

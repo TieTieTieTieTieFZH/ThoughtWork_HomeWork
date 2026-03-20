@@ -3,7 +3,7 @@ import firecrawl
 from loguru import logger
 
 
-def unified_search_tool(query: str, platform: str = "nowcoder") -> list[dict[str, str]]:
+def unified_search_tool(query: str, platform: str = "nowcoder", page: int = 3) -> list[dict[str, str]]:
     """
     Scrapes job listings from Nowcoder using Firecrawl.
     Returns a list of dicts: [{"title": str, "url": str, "description": str}].
@@ -13,11 +13,11 @@ def unified_search_tool(query: str, platform: str = "nowcoder") -> list[dict[str
     if platform == "nowcoder":
         # Using the specified intern center search URL
         url = (
-            f"https://www.nowcoder.com/jobs/school/jobs?search={query}"
+            f"https://www.nowcoder.com/jobs/school/jobs?search={query}&order={page}"
         )
     else:
         url = (
-            f"https://www.nowcoder.com/jobs/school/jobs?search={query}"
+            f"https://www.nowcoder.com/jobs/school/jobs?search={query}&order={page}"
         )
 
     logger.info(f"当前访问的网站地址：{url}")
