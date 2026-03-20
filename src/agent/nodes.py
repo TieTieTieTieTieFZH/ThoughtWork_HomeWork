@@ -149,7 +149,7 @@ def scrape_and_parse(state: AgentState) -> dict:
 
     # 阶段1: LLM一次判断所有卡片是否AI相关
     is_ai_list = parser.is_ai_related_batch(cards, llm)
-    logger.info(f"AI相关判断结果: {is_ai_list}")
+    # logger.info(f"AI相关判断结果: {is_ai_list}")
 
     # 阶段2: 代码解析所有AI相关岗位
     existing_jobs = state.get("collected_jobs", [])
@@ -162,7 +162,7 @@ def scrape_and_parse(state: AgentState) -> dict:
                 job = parser.parse_card_regex(card)
                 if job:
                     if job.job_url not in existing_urls:
-                        logger.info(f"解析成功并添加: {job.title} - {job.company}")
+                        # logger.info(f"解析成功并添加: {job.title} - {job.company}")
                         jobs.append(job)
                         existing_urls.add(job.job_url)
                     else:

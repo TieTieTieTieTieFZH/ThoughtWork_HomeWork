@@ -20,7 +20,7 @@ def extract_job_detail(app: firecrawl.FirecrawlApp, job: JobModel) -> JobModel:
     if not url or not url.startswith("http"):
         return job
 
-    logger.info(f"开始抓取详情页并提取技术栈: {job.title} ({url})")
+    # logger.info(f"开始抓取详情页并提取技术栈: {job.title} ({url})")
     try:
         result = app.scrape(
             url,
@@ -36,12 +36,12 @@ def extract_job_detail(app: firecrawl.FirecrawlApp, job: JobModel) -> JobModel:
         )
         if result and hasattr(result, "json") and result.json:
             detail_data = result.json
-            logger.info(f"详细描述：{detail_data}")
+            # logger.info(f"详细描述：{detail_data}")
             if detail_data.get("tech_tags"):
                 job.tech_tags = detail_data.get("tech_tags")
             if detail_data.get("requirements"):
                 job.requirements = detail_data.get("requirements")
-            logger.success(f"成功提取详情: {job.title} (Tags: {job.tech_tags})")
+            # logger.success(f"成功提取详情: {job.title} (Tags: {job.tech_tags})")
         # Handle dict response which might be what SDK returns depending on version
         elif isinstance(result, dict) and "json" in result:
             detail_data = result["json"]
@@ -49,7 +49,7 @@ def extract_job_detail(app: firecrawl.FirecrawlApp, job: JobModel) -> JobModel:
                 job.tech_tags = detail_data.get("tech_tags")
             if detail_data and detail_data.get("requirements"):
                 job.requirements = detail_data.get("requirements")
-            logger.success(f"成功提取详情: {job.title} (Tags: {job.tech_tags})")
+            # logger.success(f"成功提取详情: {job.title} (Tags: {job.tech_tags})")
         else:
             logger.warning(f"详情页未返回JSON内容: {url}")
 
