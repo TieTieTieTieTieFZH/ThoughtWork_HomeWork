@@ -1,5 +1,5 @@
 from src.agent.state import AgentState, JobModel
-from src.agent.tools import unified_search_tool
+from src.agent.tools import unified_search_tool, enrich_job_details
 from src.agent.parser import get_parser, parse_card_with_llm
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -170,5 +170,12 @@ def scrape_and_parse(state: AgentState) -> dict:
             except Exception as e:
                 logger.error(f"解析第{i + 1}个卡片失败: {e}")
                 continue
+
+    # Enrich job details with tech tags and requirements
+    if jobs:
+        logger.info(
+            f"开始抓取这 {len(jobs)} 个岗位的详细信息 (tech_tags / requirements)..."
+        )
+        jobs = enrich_job_details(jobs)
 
     return {"collected_jobs": existing_jobs + jobs}
