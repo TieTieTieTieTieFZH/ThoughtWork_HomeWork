@@ -3,7 +3,9 @@ import firecrawl
 from loguru import logger
 
 
-def unified_search_tool(query: str, platform: str = "nowcoder", page: int = 3) -> list[dict[str, str]]:
+def unified_search_tool(
+    query: str, platform: str = "nowcoder", page: int = 3
+) -> list[dict[str, str]]:
     """
     Scrapes job listings from Nowcoder using Firecrawl.
     Returns a list of dicts: [{"title": str, "url": str, "description": str}].
@@ -12,28 +14,26 @@ def unified_search_tool(query: str, platform: str = "nowcoder", page: int = 3) -
 
     if platform == "nowcoder":
         # Using the specified intern center search URL
-        url = (
-            f"https://www.nowcoder.com/jobs/school/jobs?search={query}&order={page}"
-        )
+        url = f"https://www.nowcoder.com/jobs/school/jobs?search={query}&order={page}"
+    elif platform == "yingjiesheng":
+        url = f"https://q.yingjiesheng.com/jobs/search/{query}"
     else:
-        url = (
-            f"https://www.nowcoder.com/jobs/school/jobs?search={query}&order={page}"
-        )
+        url = f"https://www.nowcoder.com/jobs/school/jobs?search={query}&order={page}"
 
     logger.info(f"当前访问的网站地址：{url}")
     # Scraping logic
     # Firecrawl SDK v4.0.0+ uses keyword arguments for scraping
     try:
         result = app.scrape(
-            url, 
+            url,
             formats=["markdown"],
-            wait_for=5000, 
-            mobile=False
+            wait_for=10000,
+            mobile=False,
+            only_main_content=True,
         )
     except Exception as e:
         logger.error(f"Firecrawl scrape failed: {e}")
         return []
-
 
     # Check for success
     if result and hasattr(result, "markdown") and result.markdown:
