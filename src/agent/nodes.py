@@ -7,25 +7,88 @@ from src.agent.parser import (
     parse_card_regex,
 )
 from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
 import os
 from loguru import logger
+from dotenv import load_dotenv
+
+
+class SearchJobsQuery(BaseModel):
+    """Call the search tool to find jobs."""
+
+    query: str = Field(
+        description="The search keyword, e.g. 'AI Engineer', '大模型算法 实习', 'NLP 校招'"
+    )
+    reasoning: str = Field(
+        description="Why you chose this query to find new, unique jobs."
+    )
 
 
 def plan_search(state: AgentState) -> dict:
-    queries = [
-        "AI",
-        "大模型算法实习生",
-        "NLP 算法工程师 校招",
-        "计算机视觉",
-        "AIGC 产品经理",
-        "机器学习工程师",
-        "深度学习",
-        "AI 架构师",
-        "数据挖掘工程师",
-    ]
-    idx = state.get("iteration_count", 0) % len(queries)
-    new_query = queries[idx]
-    logger.info(f"plan_search 输出：{state.get('search_queries', []) + [new_query]}")
+    """Agentic planning node: Uses LLM to autonomously decide the next search query based on current progress."""
+    load_dotenv()
+
+    volc_model = os.getenv("VOLC_MODEL")
+    volc_api_key = os.getenv("VOLC_API_KEY")
+    volc_api_base = os.getenv("VOLC_API_BASE")
+
+    if not volc_model or not volc_api_key:
+        raise ValueError("Missing Volcengine credentials.")
+
+    llm = ChatOpenAI(
+        model=volc_model, api_key=volc_api_key, base_url=volc_api_base, temperature=0.7
+    )
+
+    # Since `with_structured_output` may fail with some Volcengine models if `json_schema` is not fully supported,
+    # we'll bind tools instead and extract the arguments manually to ensure standard OpenAI-compatible tool calling.
+
+    llm_with_tools = llm.bind_tools([SearchJobsQuery])
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "You are an autonomous AI Job Search Agent. Your goal is to collect {target_count} distinct 'AI Engineer' jobs for fresh graduates/interns.\n\n"
+                "Progress: Collected {current_count} jobs out of {target_count}.\n"
+                "Past search queries used: {search_queries}\n\n"
+                "Your task: You MUST call the search tool by providing a NEW, distinct search query to find more relevant jobs. "
+                "Be creative with keywords to avoid duplicate results (e.g., '计算机视觉 校招', '机器学习 实习', 'AIGC 产品经理', '深度学习开发', '大模型应用工程师').\n"
+                "Do not reuse exact queries from the past list.",
+            ),
+            ("human", "Decide the next search action by calling the search tool."),
+        ]
+    )
+
+    chain = prompt | llm_with_tools
+
+    try:
+        res = chain.invoke(
+            {
+                "target_count": state.get("target_count", 50),
+                "current_count": len(state.get("collected_jobs", [])),
+                "search_queries": state.get("search_queries", []),
+            }
+        )
+
+        # Extract tool call arguments
+        if hasattr(res, "tool_calls") and len(res.tool_calls) > 0:
+            tool_args = res.tool_calls[0]["args"]
+            new_query = tool_args.get("query", "AI Engineer")
+            reasoning = tool_args.get("reasoning", "No reasoning provided.")
+            logger.info(
+                f"Agent 自主规划搜索 (Tool Call): query='{new_query}', 思考逻辑: '{reasoning}'"
+            )
+        else:
+            logger.warning("Agent 并没有调用工具，使用默认降级词")
+            new_query = "大模型 实习"
+    except Exception as e:
+        logger.error(f"Agent规划异常，使用fallback: {e}")
+        # Fallback keyword logic just in case LLM fails
+        fallbacks = ["AI 实习", "算法工程师 校招", "NLP", "计算机视觉"]
+        idx = state.get("iteration_count", 0) % len(fallbacks)
+        new_query = fallbacks[idx]
+
     return {
         "iteration_count": state.get("iteration_count", 0) + 1,
         "search_queries": state.get("search_queries", []) + [new_query],
